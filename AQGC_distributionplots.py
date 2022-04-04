@@ -76,9 +76,9 @@ def getLegend(x1=0.5809045,y1=0.6363636,x2=0.9522613,y2=0.8020979):
   legend.SetTextFont(42)
   return legend
 
-#operatorsfile = 'aQGC_WPHADWMLEP_UL2018/operators.json'
-operatorsfile = 'aQGC_WPHADWMLEP_UL2018/operators_test.json'
-inputfilename = 'aQGC_WMLEPWMHADjj_EWK_LO_NPle1_TuneCP5_13TeV-madgraph-pythia8_UL2018-NANOAODSIMv9_test2bis.root'
+operatorsfile = 'aQGC_WPHADWMLEP_UL2018/operators.json'
+#operatorsfile = 'aQGC_WPHADWMLEP_UL2018/operators_test.json'
+inputfilename = 'aQGC_WMLEPWMHADjj_EWK_LO_NPle1_TuneCP5_13TeV-madgraph-pythia8_UL2018-NANOAODSIMv9_morefiles.root'
 filetype = inputfilename.split("_")[0]+"_"+inputfilename.split("_")[1]
 print( "filetype ",filetype)
 fileversion = inputfilename.split("_")[-2]
@@ -108,7 +108,7 @@ for operator in jsonoperatorsdata:
 
 inputfile = ROOT.TFile(inputfilename,'READ')
 
-variables = ["massJ","etaJ","ptJ","ptEl","ptMu","m_{jj}^{VBF}","deltaetaVBF","eta1VBF","eta2VBF","pt1VBF","pt2VBF"] 
+variables = ["m_VVgenpart","m_Jel","m_Jmu","massJ","etaJ","ptJ","ptEl","ptMu","m_jj","deltaetaVBF","eta1VBF","eta2VBF","pt1VBF","pt2VBF"] 
 colors = ["#4292c6","#41ab5d","#ef3b2c","#17202A","#fdae61","#abd9e9","#2c7bb6"]
 linestyle = [1,2,3,4,5,6,7,8,9]
 markerstyle = [4,25,31,21,8]
