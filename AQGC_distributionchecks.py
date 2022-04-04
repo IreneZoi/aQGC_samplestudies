@@ -21,7 +21,7 @@ def getVBShists(fname,xsec_times_BR,var,operator,opweight):
   events = NanoEventsFactory.from_root(fname, schemaclass=NanoAODSchema).events()
   for i in range(0,len(events)):
     mjj = 0
-    print( "event ",i)
+    #print( "event ",i)
     for j in range(0,ak.num(events.GenJet)[i]):
       for  k in range( j + 1, ak.num(events.GenJet)[i]):
         tmp1 = ROOT.TLorentzVector(0, 0, 0, 0)
@@ -35,7 +35,7 @@ def getVBShists(fname,xsec_times_BR,var,operator,opweight):
           continue
         mjj = tempVBF.M()
         deltaeta = events.GenJet.eta[i,j]-events.GenJet.eta[i,k]
-    print(" mjj ", mjj)
+    #print(" mjj ", mjj)
     hists[var].Fill(mjj,xsec_times_BR*events[operator][opweight][i]/events.LHEWeight.originalXWGTUP[i])
     hists["deltaetaVBF"].Fill(deltaeta,xsec_times_BR*events[operator][opweight][i]/events.LHEWeight.originalXWGTUP[i])
     hists["eta1VBF"].Fill(events.GenJet.eta[i,j],xsec_times_BR*events[operator][opweight][i]/events.LHEWeight.originalXWGTUP[i])
@@ -65,15 +65,32 @@ def getHists(fname,xsec_times_BR,var,operator,opweight):
       hists[var].Fill(events.Electron[i,0].matched_gen.pt*xsec_times_BR*events[operator][opweight][i]/events.LHEWeight.originalXWGTUP[i])
     elif var == 'ptMu' and  ak.num(events.Muon.matched_gen)[i]>0:
       hists[var].Fill(events.Muon[i,0].matched_gen.pt*xsec_times_BR*events[operator][opweight][i]/events.LHEWeight.originalXWGTUP[i])
+    elif var == 'm_VVgenpart':
+      Vs = events.GenPart[i][(events.GenPart[i].status == 22) &
+                            ((abs(events.GenPart[i].pdgId) == 23) |
+                            (abs(events.GenPart[i].pdgId) == 24) )
+                            ]
+      print(" number Vs ", len(Vs))
+      VV = Vs[0] + Vs[1]
+      hists[var].Fill(VV.mass,xsec_times_BR*events[operator][opweight][i]/events.LHEWeight.originalXWGTUP[i])
+    elif var == 'm_Jel' and ak.num(events.GenJetAK8)[i]>0 and ak.num(events.Electron.matched_gen)[i]>0 :
+      J = events.GenJetAK8[i][0]
+      el = events.Electron[i,0].matched_gen
+      Jel = J+el
+      hists[var].Fill(Jel.mass,xsec_times_BR*events[operator][opweight][i]/events.LHEWeight.originalXWGTUP[i])
+    elif var == 'm_Jmu' and ak.num(events.GenJetAK8)[i]>0 and ak.num(events.Muon.matched_gen)[i]>0:
+      J = events.GenJetAK8[i][0]
+      mu = events.Muon[i,0].matched_gen
+      Jmu = J+mu
+      hists[var].Fill(Jmu.mass,xsec_times_BR*events[operator][opweight][i]/events.LHEWeight.originalXWGTUP[i])
 
-  
   return hists[var]
 
-#inputfile = "aQGC_WMLEPWMHADjj_UL2018_input_2files.txt"
-inputfile = "aQGC_WMLEPWMHADjj_UL2018_input_10files.txt"
+inputfile = "aQGC_WMLEPWMHADjj_UL2018_input_2files.txt"
+#inputfile = "aQGC_WMLEPWMHADjj_UL2018_input_10files.txt"
 xsecfile = 'AQGC_xsec_times_BR.json'
-operatorsfile = 'aQGC_WPHADWMLEP_UL2018/operators.json'
-#operatorsfile = 'aQGC_WPHADWMLEP_UL2018/operators_test.json'
+#operatorsfile = 'aQGC_WPHADWMLEP_UL2018/operators.json'
+operatorsfile = 'aQGC_WPHADWMLEP_UL2018/operators_test.json'
 
 lines = []
 with open(inputfile) as f:
@@ -118,20 +135,22 @@ for operator in jsonoperatorsdata:
   shortoperatorsdata[operator] = [first,middle_minus,sm,middle_plus,last]
   #print(shortoperatorsdata[operator])
 
-outfile = ROOT.TFile(filetype+"_"+fileversion+".root","RECREATE")
+outfile = ROOT.TFile(filetype+"_"+fileversion+"_2files.root","RECREATE")
 
 
 variables = {}
 
-variables["m_{jj}^{VBF}"]={'nbins':42,'xmin':800,'xmax':5000,'xaxistitle':'m_{jj}^{VBF} [GeV]'}
-#variables["m_{JEl}"]={'nbins':42,'xmin':800,'xmax':5000,'xaxistitle':'m_{J#ell} [GeV]'}
-#variables["m_{JMU}"]={'nbins':42,'xmin':800,'xmax':5000,'xaxistitle':'m_{J#mu} [GeV]'}
+#variables["m_jj"]={'nbins':42,'xmin':800,'xmax':5000,'xaxistitle':'m_jj [GeV]'}
+variables["m_VVgenpart"]={'nbins':42,'xmin':800,'xmax':5000,'xaxistitle':'m_{VV} [GeV]'}
+variables["m_Jel"]={'nbins':42,'xmin':800,'xmax':5000,'xaxistitle':'m_{Je^{-}} [GeV]'}
+variables["m_Jmu"]={'nbins':42,'xmin':800,'xmax':5000,'xaxistitle':'m_{J#mu} [GeV]'}
+'''
 variables["massJ"]={'nbins':40,'xmin':0,'xmax':200,'xaxistitle':'m_{J} [GeV]'}
 variables["etaJ"] = {'nbins':20,'xmin':-5,'xmax':5,'xaxistitle':'#eta_{J}'}
 variables["ptJ"] = {'nbins':100,'xmin':0,'xmax':1000,'xaxistitle':'pt_{J} [GeV]'}
-variables["ptEl"] = {'nbins':50,'xmin':0,'xmax':100,'xaxistitle':'pt_{El} [GeV]'}
+variables["ptEl"] = {'nbins':10,'xmin':0,'xmax':50,'xaxistitle':'pt_{El} [GeV]'}
 variables["ptMu"] = {'nbins':50,'xmin':0,'xmax':100,'xaxistitle':'pt_{Mu} [GeV]'}
-
+'''
 additionalvbfvariables = {}
 additionalvbfvariables["deltaetaVBF"] = {'nbins':20,'xmin':-5,'xmax':5,'xaxistitle':'#Delta#eta_{jj}^{VBF}'}
 additionalvbfvariables["eta1VBF"] = {'nbins':20,'xmin':-5,'xmax':5,'xaxistitle':'#eta_{1}^{VBF}'}
@@ -147,24 +166,24 @@ for var in variables:
   hists[var] = {}
   
 
-  if var == 'm_{jj}^{VBF}':
+  if var == 'm_jj':
     for vbfvar in additionalvbfvariables:
       hists[vbfvar] = {}
   for operator in shortoperatorsdata:
     print(" operator ",operator)
     hists[var][operator]={}
-    if var == 'm_{jj}^{VBF}':
+    if var == 'm_jj':
       for vbfvar in additionalvbfvariables:
         hists[vbfvar][operator] = {}
     for opweight in shortoperatorsdata[operator]:
       print(" opweight ",opweight)
       hists[var][operator][opweight] = None
-      if var == 'm_{jj}^{VBF}':
+      if var == 'm_jj':
         for vbfvar in additionalvbfvariables:
           hists[vbfvar][operator][opweight] = None
 
       for line in lines:
-        if var == 'm_{jj}^{VBF}':
+        if var == 'm_jj':
           if hists[var][operator][opweight] == None:
             hists[var][operator][opweight],hists["deltaetaVBF"][operator][opweight],hists["eta1VBF"][operator][opweight],hists["eta2VBF"][operator][opweight],hists["pt1VBF"][operator][opweight],hists["pt2VBF"][operator][opweight] = getVBShists(line,xsec_times_BR,var,operator,opweight)
           else: 
@@ -174,7 +193,7 @@ for var in variables:
             hists["eta1VBF"][operator][opweight].Add(tmp3)
             hists["eta2VBF"][operator][opweight].Add(tmp4)
             hists["pt1VBF"][operator][opweight].Add(tmp5)
-            hists["pt2VBF"][operator][opweight].Add(tmp6)      
+            hists["pt2VBF"][operator][opweight].Add(tmp6)     
         else:
           if hists[var][operator][opweight] == None:
               hists[var][operator][opweight] = getHists(line,xsec_times_BR,var,operator,opweight)
@@ -183,7 +202,7 @@ for var in variables:
               hists[var][operator][opweight].Add(tmp)  
               
       hists[var][operator][opweight].Write()
-      if var == 'm_{jj}^{VBF}':
+      if var == 'm_jj':
         for vbfvar in additionalvbfvariables:
           hists[vbfvar][operator][opweight].Write()      
      
